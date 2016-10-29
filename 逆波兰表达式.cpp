@@ -148,7 +148,7 @@ Status StackTraverse(Stack top)
 {
 	reverse(top);			//?????????? 
 	Stack p = top->next; 
-	while(p->data != '#')
+	while(p)
 	{
 		printf("%c ",p->data);
 		p = p->next;
@@ -182,24 +182,18 @@ void InversePolandExpression(char Buffer[])
 	InitStack(s1);
 	InitStack(s2);
 	int i=0;
-	int value = 0;
-	int flag = 0; 
 	ElemType e;
-	Push(s2,Buffer[i]);
-	i++;
-	while(Buffer[i] != '#')
+	while(Buffer[i] != '\0')
 	{
 		if(!IsOperator(Buffer[i]))// ???????
 		{	
 			Push(s1,Buffer[i]);
-			i++;
 		}
 		else// ???????
 		{	
-			if(Buffer[i] == '(')
+			if(Buffer[i] == '(' || StackEmpty(s2))
 			{
-				Push(s2,Buffer[i]);
-				i++;				
+				Push(s2,Buffer[i]);				
 			}
 			else
 			{
@@ -211,30 +205,23 @@ void InversePolandExpression(char Buffer[])
 						Push(s1,e);
 						Pop(s2,e);
 					}
-					i++;
 				}
 				else
 				{
 					GetTop(s2,e);
-					if(Prior(e,Buffer[i]))
+					while(Prior(e,Buffer[i]))
 					{
-						while(Prior(e,Buffer[i]))
-						{
-							Pop(s2,e);
-							Push(s1,e);
-							GetTop(s2,e);
-						}
-						Push(s2,Buffer[i]);
-						i++;
+						Pop(s2,e);
+						Push(s1,e);
+						GetTop(s2,e);
+						if(StackEmpty(s2))
+							break;
 					}
-					else
-					{
-						Push(s2,Buffer[i]);
-						i++;
-					}
+					Push(s2,Buffer[i]);
 				}
 			}
 		}
+		i++;
 	}
 	while(!StackEmpty(s2))
 	{
@@ -266,12 +253,10 @@ void EvaluateExpression(char buff[])
 	int flag = 0;
 	int i = 0;
 	ElemType e;
-	Push(s2,buff[i]);
-	i++;
-	while(buff[i] != '#')
+	while(buff[i] != '\0')
 	{
 		if (!IsOperator(buff[i]))
-		{
+		{	
 			value = value * 10 + buff[i] - '0';
 			flag = 1;
 		}
@@ -283,7 +268,7 @@ void EvaluateExpression(char buff[])
 				flag = 0;
 				value = 0;
 			}
-			if (buff[i] == '(')
+			if (buff[i] == '(' || StackEmpty(s2))
 				Push(s2,buff[i]);
 			else
 			{
@@ -305,6 +290,8 @@ void EvaluateExpression(char buff[])
 						Pop(s2,e);
 						Operate(s1,e);
 						GetTop(s2,e);
+						if(StackEmpty(s2))
+							break;
 					}
 					Push(s2,buff[i]);
 				}
@@ -325,8 +312,9 @@ void EvaluateExpression(char buff[])
 }
 int main()
 {
-	Stack s;
-	char buff[] = "#9+(3-1)*3+10/2#";
+//	char buff[] = "#9+(3-1)*3+10/2#";
+	char buff[255];
+	gets(buff);
 	InversePolandExpression(buff);
 	printf("\n"); 
 	EvaluateExpression(buff);
