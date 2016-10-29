@@ -1,7 +1,7 @@
- /*
- 假设表达式有单字母变量和双目四则运算符构成。
- 试写一个算法，将一个通常书写形式且书写正确的表达式转换为逆波兰表达式。
-输入的表达式串必须为#...#格式
+/*
+ ????????械????????????????????????伞?
+ ??写?????????????????写???????写?????????????娌????????
+???????????????#...#???
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@
 # define OVERFLOW -2
 #define STACK_INIT_SIZE 100
 #define STACKINCREMENT 10
-typedef char ElemType;
+typedef int ElemType;
 typedef int Status;
 typedef struct Node
 {
@@ -62,7 +62,6 @@ Status ClearStack(Stack &top)
 			p = q;
 		}
 		top->next = NULL;
-		return OK;
 	}
 }
 Status StackEmpty(Stack top)
@@ -147,14 +146,13 @@ void reverse(Stack &L)
 }
 Status StackTraverse(Stack top)
 {
-	reverse(top);			//从栈底开始输出 
+	reverse(top);			//?????????? 
 	Stack p = top->next; 
-	while(p)
+	while(p->data != '#')
 	{
-		printf("%c",p->data);
+		printf("%c ",p->data);
 		p = p->next;
 	}
-	return OK;
 }
 Status IsOperator(char c)
 {
@@ -168,8 +166,8 @@ Status Prior(char c1,char c2)
 	char ch[] = "#(+-*/)";
 	int i = 0,j = 0;
 	while(ch[i] && ch[i] != c1) i++;
-	if(i == 3) i--;	// 加和减可认为是同级别的运算符
-	if(i == 5) i--;	// 乘和除可认为是同级别的运算符
+	if(i == 3) i--;	// ??????????????????????
+	if(i == 5) i--;	// ??????????????????????
 	while(ch[j] && ch[j] != c2) j++;
 	if(j == 3) j--;
 	if(j == 5) j--;
@@ -178,26 +176,25 @@ Status Prior(char c1,char c2)
 	else 
 		return FALSE;
 }
-void InversePolandExpression(char Buffer[], char *IPExpression)
+void InversePolandExpression(char Buffer[])
 {
-	Stack s1;
-	Stack s2;
+	Stack s1,s2;
 	InitStack(s1);
 	InitStack(s2);
 	int i=0;
+	int value = 0;
+	int flag = 0; 
 	ElemType e;
-//	printf("%c",Buffer[i]);
 	Push(s2,Buffer[i]);
 	i++;
 	while(Buffer[i] != '#')
 	{
-		if(!IsOperator(Buffer[i]))// 是操作数
+		if(!IsOperator(Buffer[i]))// ???????
 		{	
 			Push(s1,Buffer[i]);
-//			Push(s1,' ');
 			i++;
 		}
-		else// 是操作符
+		else// ???????
 		{	
 			if(Buffer[i] == '(')
 			{
@@ -212,7 +209,6 @@ void InversePolandExpression(char Buffer[], char *IPExpression)
 					while(e != '(')
 					{
 						Push(s1,e);
-	//					Push(s1,' ');
 						Pop(s2,e);
 					}
 					i++;
@@ -222,11 +218,10 @@ void InversePolandExpression(char Buffer[], char *IPExpression)
 					GetTop(s2,e);
 					if(Prior(e,Buffer[i]))
 					{
-						while(Prior(e,Buffer[i]))// 当栈顶优先权高于当前序列时，退栈
+						while(Prior(e,Buffer[i]))
 						{
 							Pop(s2,e);
 							Push(s1,e);
-			//				Push(s1,' ');
 							GetTop(s2,e);
 						}
 						Push(s2,Buffer[i]);
@@ -245,73 +240,94 @@ void InversePolandExpression(char Buffer[], char *IPExpression)
 	{
 		Pop(s2,e);
 		Push(s1,e);
-	//	Push(s1,' ');
 	}
-	i = 0;
-	reverse(s1);
-	while(!StackEmpty(s1))
+	StackTraverse(s1);
+}
+void Operate(Stack &s1,ElemType e)
+{
+	int e1,e2;
+	Pop(s1,e1);
+	Pop(s1,e2);
+	int x;
+	switch(e)
 	{
-		Pop(s1,e);
-		IPExpression[i] = e;
-//		printf("%c",e);
-		i++;
-//		IPExpression[i] = ' ';
-//		i++;
+		case '+':Push(s1,e1+e2);break;
+		case '-':Push(s1,e2-e1);break;
+		case '*':Push(s1,e1*e2);break;
+		case '/':Push(s1,e2/e1);break;
 	}
 }
 void EvaluateExpression(char buff[])
 {
-	Stack s1;
+	Stack s1,s2;	//s1运算数栈，s2运算符栈
 	InitStack(s1);
-	ElemType e1,e2,e;
-	int c1,c2;
+	InitStack(s2);
+	int value = 0;
+	int flag = 0;
 	int i = 0;
+	ElemType e;
+	Push(s2,buff[i]);
+	i++;
 	while(buff[i] != '#')
 	{
-		if(buff[i] == ' ')
-			i++;
+		if (!IsOperator(buff[i]))
+		{
+			value = value * 10 + buff[i] - '0';
+			flag = 1;
+		}
 		else
 		{
-			if(!IsOperator(buff[i]))
+			if(flag == 1)
 			{
-				Push(s1,buff[i]);
-//							printf("%c\n",buff[i]);
-				i++;
-
+				Push(s1,value);
+				flag = 0;
+				value = 0;
 			}
+			if (buff[i] == '(')
+				Push(s2,buff[i]);
 			else
 			{
-				Pop(s1,e1);
-				Pop(s1,e2);
-				c1 = e1 - '0';
-				c2 = e2 - '0';
-				printf("c1:%d,c2:%d",c1,c2);
-				switch(buff[i])
+				if (buff[i] == ')')
 				{
-				case '+':e = c1 + c2 + '0';printf(",e:%c\n",e);Push(s1,e);break;
-				case '-':e = c2 - c1 + '0';printf(",e:%c\n",e);Push(s1,e);break;
-				case '*':e = c1 * c2 + '0';printf(",e:%c\n",e);Push(s1,e);break;
-				case '/':e = c2 / c1 + '0';printf(",e:%c\n",e);Push(s1,e);break;
+					Pop(s2,e);
+					while(e != '(')
+					{
+						Operate(s1,e);
+						Pop(s2,e);
+					}
 				}
-				i++;
+				else
+				{
+					GetTop(s2,e);
+				//	if (!Prior(e,Buffer[i]))		
+					while(Prior(e,buff[i]))
+					{
+						Pop(s2,e);
+						Operate(s1,e);
+						GetTop(s2,e);
+					}
+					Push(s2,buff[i]);
+				}
 			}
-		}	
+		}
+		i++;
 	}
-	GetTop(s1,e);
-	printf("%c",e);
+	if (flag)
+        Push(s1,value);
+    while (!StackEmpty(s2))
+    {
+        Pop(s2,e);
+        Operate(s1,e);
+        GetTop(s1,value); 
+    }
+    GetTop(s1,value); 
+	printf("%s=%d\n",buff,value);
 }
 int main()
 {
-//	char buff[] = {'#','9','+','(','3','-','1',')','*','3','+','8','/','2','#'};
-	char buff[] = "#7+(3-1)#";
-	char buff_return[100];
-	InversePolandExpression(buff,buff_return);
-	int i = 0;
-	while(buff_return[i] != '#')
-	{
-		printf("%c ",buff_return[i++]);
-	}
-	printf("\n");
-	EvaluateExpression(buff_return);
-	return 0;
+	Stack s;
+	char buff[] = "#9+(3-1)*3+10/2#";
+	InversePolandExpression(buff);
+	printf("\n"); 
+	EvaluateExpression(buff);
 }
